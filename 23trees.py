@@ -22,75 +22,97 @@ class Tree23(object):
             self.add(item)
     
     # tree traversal
-    def findInsertionLocation(self, item, node):
+    def findInsertionLocation(self, item, node, prev):
         if (node == None):
-            return None
+            return node, prev
         
         n = len(node.data)
         
         # left
         if (n >= 1 and item < node.data[0]):
             if (node.left != None):
-                return self.findInsertionLocation(item, node.left)
-            return node
+                return self.findInsertionLocation(item, node.left, node)
+            return node, prev
 
         # right with len = 2
         if (n == 2 and item > node.data[1]):
             if (node.right != None):
-                return self.findInsertionLocation(item, node.right)
-            return node
+                return self.findInsertionLocation(item, node.right, node)
+            return node, prev
         
         # right with len = 1
         if (n == 1 and item > node.data[0]):
             if (node.right != None):
-                return self.findInsertionLocation(item, node.right)
-            return node
+                return self.findInsertionLocation(item, node.right, node)
+            return node, prev
 
         # middle with len = 2
         if (n == 2 and item > node.data[1] and item < node.data[2]):
             if (node.middle != None):
-                return self.findInsertionLocation(item, node.middle)
-            return node
+                return self.findInsertionLocation(item, node.middle, node)
+            return node, prev
         
-        return node
+        return node, prev
 
 
     def add(self, item):
+        print('in add')
+        print(item)
         # adding first element
         if (self.head == None):
-            self.head = Node([item])
+            self.head = Node()
        
         # all other cases
         # find valid empty spot: tree node at the lowest level where it fits
-        temp = self.findInsertionLocation(item, self.head)
-        
+        temp, prev = self.findInsertionLocation(item, self.head, self.head)
+        if (temp == None):
+            temp = prev
+
         # if temp is uninitialized
         if (temp == None):
             temp = Node()
         temp.insert(item)
-
+        print(temp.data)
         # balance tree
-        self.balanceNode(temp)
+        self.balanceNode(temp, prev)
+        print('end of add')
         return
 
     # handle individual balancing and shifting
-    def balanceNode(self, node):
+    def balanceNode(self, node, prev):
+        print('in balance node')
         # doesn't need to be balanced
         if (len(node.data) < 3):
+            print('doesnt need balancing')
             return node
         
         # balance
-        newHead = Node([node.data[1]])
-        newLeft = Node(node.data[0])
-        newRight = Node(node.data[2])
-        
-        newLeft.left = node.left
-        newRight.left = node.middle
-        newRight.right = node.right
+        if (prev == None):
+            newHead = Node([node.data[1]])
+            newLeft = Node([node.data[0]])
+            newRight = Node([node.data[2]])
+            
+            newLeft.left = node.left
+            newRight.left = node.middle
+            newRight.right = node.right
 
-        newHead.left = newLeft
-        newHead.right = newRight
+            newHead.left = newLeft
+            newHead.right = newRight
 
+            prev = newHead
+            return prev
+        print(newHead.left.data)
+        print(newHead.data)
+        print(newHead.right.data)
+        # prev exists
+        else:
+            prev.data.insert(node.data.pop(1))
+            prev.middle.insert(node.data.pop(2))
+            if (len(prev.data) >= 3):
+                # whats prev of prev???-
+                self.balanceNode(prev)
+            if (len())
+        print('end of balance node')
         return node
 
     # find nodes that need balancing and balance them
@@ -127,4 +149,7 @@ class Tree23(object):
     def printTree(self):
         return self.printTreeHelper(self.head)
 
-    
+if __name__ == '__main__':
+    items = [5,8,12,4,2,10]
+    tree = Tree23(items)
+    tree.printTree()

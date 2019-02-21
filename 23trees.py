@@ -70,19 +70,49 @@ class Tree23(object):
         temp.insert(item)
 
         # balance tree
-        self.balance()
+        self.balanceNode(temp)
         return
 
+    # handle individual balancing and shifting
+    def balanceNode(self, node):
+        # doesn't need to be balanced
+        if (len(node.data) < 3):
+            return node
+        
+        # balance
+        newHead = Node([node.data[1]])
+        newLeft = Node(node.data[0])
+        newRight = Node(node.data[2])
+        
+        newLeft.left = node.left
+        newRight.left = node.middle
+        newRight.right = node.right
 
-    def remove(self, item):
+        newHead.left = newLeft
+        newHead.right = newRight
+
+        return node
+
+    # find nodes that need balancing and balance them
+    def balanceHelper(self, node):
+        if (node == None):
+            return
+        
+        if (len(node.data) == 3):
+            node = self.balanceNode(node)
+        
+        self.balanceHelper(node.left)
+        self.balanceHelper(node.right)
         return
 
-
+    # balance entire tree
     def balance(self):
-        return
-
+        return self.balanceHelper(self.head)
 
     def find(self, item):
+        return
+    
+    def remove(self, item):
         return
 
     def printTreeHelper(self, node):

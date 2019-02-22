@@ -6,13 +6,13 @@ class Node(object):
         self.left, self.right, self.middle = None, None, None
         self.parent = None
         
-    def is_leaf():
+    def is_leaf(self):
         if (self.left == None and self.right == None and self.middle == None):
             return True
         assert (self.left == None and self.right == None) or (self.left != None and self.right != None), "Invalid Node Found"
         return False
 
-    def is_branch():
+    def is_branch(self):
         if (self.is_leaf()) : 
             return False
         elif (len(data) == 1):

@@ -15,15 +15,15 @@ class Node(object):
     def is_branch(self):
         if (self.is_leaf()) : 
             return False
-        elif (len(data) == 1):
+        elif (len(self.data) == 1):
             assert (self.middle == None), "Invalid Node Found"
             assert (self.left != None and self.right != None), "Invalid Node Found"
-        elif (len(data) == 2):
+        elif (len(self.data) == 2):
             assert self.left != None and self.right != None and self.middle != None, "Invalid Node Found"
         return True
 
     def insert(self, item):
-        if (len(data) > 2):
+        if (len(self.data) > 2):
             raise ValueError("Too Many Values in Node. Cannot Insert.")
         self.data.append(item)
         self.data.sort() # fast because 3 elements or less in list
@@ -82,6 +82,10 @@ class Tree23(object):
         assert node.is_leaf(), "Invalid node, its not a leaf."
         return node
 
+    # TODO: splits the middle node
+    def splitMiddle(self, node):
+        return 
+
     # handle individual balancing and shifting
     def balanceNode(self, node):
         if (len(node.data) < 3): # base case: its balanced
@@ -110,7 +114,8 @@ class Tree23(object):
         # node does have a parent
         elif (parent is not None):
             # if direction is right, not left
-            if (parent.data[1] < node.data[2]):
+            # data at index 1 because middle node is removed
+            if (node.parent.data[0] < node.data[1]):
                 direction = 'right'
 
             # balancing a right node
@@ -121,13 +126,13 @@ class Tree23(object):
                 node.left = None
 
                 # changes
-                parent.insert(middleVal)
-                if (parent.middle is None):
-                    parent.middle = Node()
-                parent.middle.insert(newVal)
-                parent.middle.right = newNode
-                parent.middle.right.parent = parent.middle
-                parent.middle.parent = parent
+                node.parent.insert(middleVal)
+                if (node.parent.middle is None):
+                    node.parent.middle = Node()
+                node.parent.middle.insert(newVal)
+                node.parent.middle.right = newNode
+                node.parent.middle.right.parent = parent.middle
+                node.parent.middle.parent = parent
 
             # balancing a left node
             elif direction == 'left':
@@ -137,13 +142,14 @@ class Tree23(object):
                 node.right = None
 
                 # changes
-                parent.insert(middleVal)
-                if (parent.middle is None):
-                    parent.middle = Node()
-                parent.middle.insert(newVal)
-                parent.middle.left = newNode
-                parent.middle.left.parent = parent.middle
-                parent.middle.parent = parent
+                node.parent.insert(middleVal)
+                if (node.parent.middle is None):
+                    node.parent.middle = Node()
+                node.parent.middle.insert(newVal)
+                node.parent.middle.left = newNode
+                if (newNode is not None):
+                    node.parent.middle.left.parent = parent.middle
+                node.parent.middle.parent = parent
 
         # middle node exists
         if (middleNode is not None):
@@ -177,7 +183,20 @@ class Tree23(object):
         self.balanceNode(node)
         return
 
+    def printTreeHelper(self, node):
+        if (node == None):
+            return
 
+        print(node.data)
+        print('\n')
+        self.printTreeHelper(node.left)
+        self.printTreeHelper(node.middle)
+        self.printTreeHelper(node.right)
+        return
+
+
+    def printTree(self):
+        return self.printTreeHelper(self.root)
 
 if __name__ == '__main__':
     items = [5,8,12,4,2,10]

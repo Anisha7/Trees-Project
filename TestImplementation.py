@@ -5,45 +5,80 @@ class Node(object):
         self.data = data
         self.left = None
         self.right = None
-        self.middle = None
-        self.prev = None
+        self.middle = None  # ONLY USED WITH 3 NODE, ELSE NONE
+        self.parent = None
+
+    def is_leaf(self):
+        # check len(data) and .left/.right (.middle for 3-node)
+
+    def is_branch(self):
+        # check that both children exist (2 node) or all 3 children exist (3-node), else raise Error
+
 
     def insert(self, item):
         if (len(self.data) < 3):
             self.data.append(item)
             self.data.sort()
-            return True
-        return False
+            return
+        raise ValueError("Node has too many elements. Cannot insert.")
 
 
 class Tree23(object):
     def __init__(self, items=[]):
-        self.head = None
+        self.root = None
         for item in items:
             self.add(item)
     
     # find if item belongs in left, right, or middle
     def direction(self, item, node):
-        if (node == None):
-            return None
-        if (node.data[0] > item):
-            return 'left'
-        if (len(node.data) == 2 and node.data[1] < item):
-            return 'right'
-        if (len(node.data) == 1 and node.data[0] < item):
-            return 'right'
-        if (len(node.data) == 1 and node.data[0] < item and node.data[1] > item):
-            return 'middle'
-        return 'curr'
+        # if (node == None):
+        #     return None
+        # if (node.data[0] > item):
+        #     return 'left'
+        # if (len(node.data) == 2 and node.data[1] < item):
+        #     return 'right'
+        # if (len(node.data) == 1 and node.data[0] < item):
+        #     return 'right'
+        # if (len(node.data) == 1 and node.data[0] < item and node.data[1] > item):
+        #     return 'middle'
+        # return 'curr'
 
-    # tree traversal: finds the head node for which the item could belong on left, right, or middle
+        if node is None:
+            return None
+        assert 1 <= len(node.data) <= 2
+        # Check if node is a leaf or branch
+
+        # If node is a branch ...
+        if len(node.data) == 1:  # 2-node
+            if item < node.data[0]:
+                if node.left is None:
+                    return 'curr'
+                return 'left'
+            elif item > node.data[0]:
+                return 'right'  # FIXME: Case 2. (add 8 to a single node with 5 in it)
+            elif item == node.data[0]:
+                raise ValueError("Equal values not supported (yet)")
+        elif len(node.data) == 2:  # 3-node
+            if item < node.data[0]:
+                return 'left'
+            elif item > node.data[1]:
+                return 'right'
+            elif node.data[0] < item < node.data[1]:
+                return 'middle'
+            elif item == node.data[0] or item == node.data[1]:
+                raise ValueError("Equal values not supported (yet)")
+
+
+    # tree traversal: finds the root node for which the item could belong on left, right, or middle
     # bottom-most node where the item could be added to
     def findInsertionLocation(self, item, node):
         direction = self.direction(item, node)
+        assert node is not None, "error msg"
         if (node == None):
-            return None, direction
+            raise ValueError("Give node with None value")
+            # return None, direction
         
-        solution, direc = None, 'curr'
+        solution, direc = node, 'curr'
         if (direction == 'left'):
             if (node.left == None):
                 return node, 'left'
@@ -55,23 +90,27 @@ class Tree23(object):
         elif (direction == 'middle'):
             if (node.middle == None):
                 return node, 'middle'
-            solution, direc = self.findInsertionLocation(item, node.middle)
-            
-        # if solution not found
-        if (solution == None):
-            return node, 'curr'
+            # solution, direc = self.findInsertionLocation(item, node.middle)
+            return self.findInsertionLocation(item, node.middle)
+        else:
+            # ???   
+        # # if solution not found
+        # if (solution == None):
+        #     return node, 'curr'
         
         return solution, direc
 
     def add(self, item):
         # if empty tree, initialize
-        if (self.head == None):
-            self.head = Node([item])
+        if (self.root == None):
+            self.root = Node([item])
         
         else:
             # assuming this function works
-            node, direction = self.findInsertionLocation(item, self.head)
+            node, direction = self.findInsertionLocation(item, self.root)
             appended = 'curr'
+            
+            # if leaf: append to node
 
             # use direction to append to proper node
             if (direction == 'left'):
@@ -105,7 +144,7 @@ class Tree23(object):
                 node.insert(item)
 
             # balancing if needed
-            # new nodes are created only when balancing, so make sure to set the prev property then
+            # new nodes are created only when balancing, so make sure to set the parent property then
             if (appended == 'curr' and len(node.data) >= 3):
                 print('balancing: %s'%(str(node.data)))
                 # balance node
@@ -126,36 +165,39 @@ class Tree23(object):
 
     # handle individual balancing and shifting
     def balanceNode(self, node):
+        assert len(node.data) == 3, "Tried to balance a non-full node"
         rightItem = node.data.pop()
         print(rightItem)
         middleItem = node.data.pop()
         print(middleItem)
 
-        # if we are on head node, prev will be none
-        # so we create a new head node
-        if (node.prev == None):
-            node.prev = Node()
-            self.head = node.prev
+        # if we are on root node, parent will be none
+        # so we create a new root node
+        if (node.parent == None):
+            new_parent = Node()
+            node.parent = new_parent
+            self.root = node.parent
 
         # NOTE: There should only be a middle node if there are 2 data items
         # Else, handle differently.
         
-        # push middle item into prev
-        node.prev.insert(middleItem)
+        # push (promote) middle item into parent
+        node.parent.insert(middleItem)
         # node.data.pop()
         print(node.data)
-        print('prev')
-        print(node.prev.data)
+        print('parent')
+        print(node.parent.data)
 
         # push right item into middle
         if (node.middle == None):
             # initialize middle
-            node.middle = Node()
-            node.middle.prev = node
+            new_node = Node()
+            new_node.parent = node
+            node.middle = new_node
         node.middle.insert(rightItem)
 
-        # if (len(node.prev.data) >= 3):
-        #     return self.balanceNode(node.prev)
+        # if (len(node.parent.data) >= 3):
+        #     return self.balanceNode(node.parent)
         return
 
 
@@ -173,7 +215,7 @@ class Tree23(object):
 
         self.printTreeHelper(node.left)
         if (node.middle != None):
-            print(node.data[0])
+            print(node.data[0], end=' ')
             self.printTreeHelper(node.middle)
             print(node.data[1])
         else:
@@ -183,7 +225,7 @@ class Tree23(object):
 
 
     def printTree(self):
-        return self.printTreeHelper(self.head)
+        return self.printTreeHelper(self.root)
 
 if __name__ == '__main__':
     items = [5,8,12,4,2,10]

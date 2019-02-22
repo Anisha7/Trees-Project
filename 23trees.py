@@ -3,151 +3,181 @@ class Node(object):
     def __init__(self, data=[]):
         # items that need to be stored
         self.data = data
-        self.left = None
-        self.right = None
-        self.middle = None
+        self.left, self.right, self.middle = None, None, None
+        self.parent = None
+        
+    def is_leaf():
+        if (self.left == None and self.right == None and self.middle == None):
+            return True
+        assert (self.left == None and self.right == None) or (self.left != None and self.right != None), "Invalid Node Found"
+        return False
+
+    def is_branch():
+        if (self.is_leaf()) : 
+            return False
+        elif (len(data) == 1):
+            assert (self.middle == None), "Invalid Node Found"
+            assert (self.left != None and self.right != None), "Invalid Node Found"
+        elif (len(data) == 2):
+            assert self.left != None and self.right != None and self.middle != None, "Invalid Node Found"
+        return True
 
     def insert(self, item):
-        if (len(self.data) < 3):
-            self.data.append(item)
-            self.data.sort()
-            return True
-        return False
+        if (len(data) > 2):
+            raise ValueError("Too Many Values in Node. Cannot Insert.")
+        self.data.append(item)
+        self.data.sort() # fast because 3 elements or less in list
+        return
 
 
 class Tree23(object):
     def __init__(self, items=[]):
-        self.head = None
+        self.root = None
         for item in items:
             self.add(item)
     
-    # tree traversal
-    def findInsertionLocation(self, item, node, prev):
-        if (node == None):
-            return node, prev
+    #### helper functions ####
+
+    # get direction for tree traversal when finding a valid node for adding item
+    def getDirection(self, item, node):
+        assert node.is_branch(), "Cannot get direction for leaf node"
+        # deals with lead case in findValidNode
+        if (len(node.data) == 1):
+            if (item < node.data[0]):
+                return 'left'
+            elif (item > node.data[0]):
+                return 'right'
+            elif (item == node.data[0]):
+                raise ValueError("Duplicated not allowed ----YET----")
+        elif (len(node.data == 2)):
+            if (item < node.data[0]):
+                return 'left'
+            elif (item > node.data[1]):
+                return 'right'
+            elif (node.data[0] < item < node.data[1]):
+                return 'middle'
+            elif (item == node.data[0] or item == node.data[1]):
+                raise ValueError("Duplicated not allowed ----YET----")
         
-        n = len(node.data)
-        
-        # left
-        if (n >= 1 and item < node.data[0]):
-            if (node.left != None):
-                return self.findInsertionLocation(item, node.left, node)
-            return node, prev
+        # else: length of data is 0 or more than 2
+        raise ValueError("Invalid Node")
 
-        # right with len = 2
-        if (n == 2 and item > node.data[1]):
-            if (node.right != None):
-                return self.findInsertionLocation(item, node.right, node)
-            return node, prev
-        
-        # right with len = 1
-        if (n == 1 and item > node.data[0]):
-            if (node.right != None):
-                return self.findInsertionLocation(item, node.right, node)
-            return node, prev
+    # tree traversal: finds the root node for which the item could belong on left, right, or middle
+    # bottom-most node where the item could be added to
+    def findValidNode(self, item, node):
+        assert node is not None, "Given node with None value"
 
-        # middle with len = 2
-        if (n == 2 and item > node.data[1] and item < node.data[2]):
-            if (node.middle != None):
-                return self.findInsertionLocation(item, node.middle, node)
-            return node, prev
-        
-        return node, prev
-
-
-    def add(self, item):
-        print('in add')
-        print(item)
-        # adding first element
-        if (self.head == None):
-            self.head = Node()
-       
-        # all other cases
-        # find valid empty spot: tree node at the lowest level where it fits
-        temp, prev = self.findInsertionLocation(item, self.head, self.head)
-        if (temp == None):
-            temp = prev
-
-        # if temp is uninitialized
-        if (temp == None):
-            temp = Node()
-        temp.insert(item)
-        print(temp.data)
-        # balance tree
-        self.balanceNode(temp, prev)
-        print('end of add')
-        return
-
-    # handle individual balancing and shifting
-    def balanceNode(self, node, prev):
-        print('in balance node')
-        # doesn't need to be balanced
-        if (len(node.data) < 3):
-            print('doesnt need balancing')
+        if (node.is_leaf()): # no left/right subtrees
             return node
         
-        # balance
-        if (prev == None):
-            newHead = Node([node.data[1]])
-            newLeft = Node([node.data[0]])
-            newRight = Node([node.data[2]])
-            
-            newLeft.left = node.left
-            newRight.left = node.middle
-            newRight.right = node.right
-
-            newHead.left = newLeft
-            newHead.right = newRight
-
-            prev = newHead
-            return prev
-        print(newHead.left.data)
-        print(newHead.data)
-        print(newHead.right.data)
-        # prev exists
-        else:
-            prev.data.insert(node.data.pop(1))
-            prev.middle.insert(node.data.pop(2))
-            if (len(prev.data) >= 3):
-                # whats prev of prev???-
-                self.balanceNode(prev)
-            if (len())
-        print('end of balance node')
+        # else
+        direction = self.getDirection(item, node)
+        if (direction == "left"):
+            return self.findValidNode(item, node.left)
+        elif (direction == "right"):
+            return self.findValidNode(item, node.right)
+        elif (direction == "middle"):
+            return self.findValidNode(item, node.middle)
+        
+        assert node.is_leaf(), "Invalid node, its not a leaf."
         return node
 
-    # find nodes that need balancing and balance them
-    def balanceHelper(self, node):
-        if (node == None):
+    # handle individual balancing and shifting
+    def balanceNode(self, node):
+        if (len(node.data) < 3): # base case: its balanced
             return
         
-        if (len(node.data) == 3):
-            node = self.balanceNode(node)
+        parent = node.parent
+        middleNode = node.middle
+        node.middle = None
+        middleVal = node.data.pop(1)
+        direction = 'left'
+        # case when node doesn't have a parent (root node)
+        if (parent is None):
+            # new nodes
+            newNode = Node([node.data.pop()]) # end value
+            newParent = Node([middleVal]) # middle node that gets promoted
+
+            # assigning values
+            newNode.right = node.right
+            node.right = None
+            newParent.left = node
+            
+            # fixing pointers
+            node = newParent.left
+            node.parent = newParent
         
-        self.balanceHelper(node.left)
-        self.balanceHelper(node.right)
+        # node does have a parent
+        elif (parent is not None):
+            # if direction is right, not left
+            if (parent.data[1] < node.data[2]):
+                direction = 'right'
+
+            # balancing a right node
+            if direction == 'right':
+                # variables
+                newVal = node.data.pop(0)
+                newNode = node.left
+                node.left = None
+
+                # changes
+                parent.insert(middleVal)
+                if (parent.middle is None):
+                    parent.middle = Node()
+                parent.middle.insert(newVal)
+                parent.middle.right = newNode
+                parent.middle.right.parent = parent.middle
+                parent.middle.parent = parent
+
+            # balancing a left node
+            elif direction == 'left':
+                # variables
+                newVal = node.data.pop()
+                newNode = node.right
+                node.right = None
+
+                # changes
+                parent.insert(middleVal)
+                if (parent.middle is None):
+                    parent.middle = Node()
+                parent.middle.insert(newVal)
+                parent.middle.left = newNode
+                parent.middle.left.parent = parent.middle
+                parent.middle.parent = parent
+
+        # middle node exists
+        if (middleNode is not None):
+            mLeft, mRight = self.splitMiddle(middleNode)
+            if (direction == 'left'):
+                node.right = m_left
+                # this parent refers to old parent on first check
+                if (parent is not None):
+                    node.parent.middle.left = mRight
+                else:
+                    node.parent.right.left = mRight
+
+            elif (direction == 'right'):
+                node.left = mRight
+                node.parent.middle.right = mLeft
+        
         return
 
-    # balance entire tree
-    def balance(self):
-        return self.balanceHelper(self.head)
+    #### implementation functions ####
 
-    def find(self, item):
-        return
-    
-    def remove(self, item):
-        return
-
-    def printTreeHelper(self, node):
-        if (node == None):
+    # adds item to the tree and self balances
+    def add(self, item):
+        if (self.root is None): # empty tree, needs to be initialized
+            self.root = Node([item])
             return
-
-        self.printTreeHelper(node.left)
-        print(node.data)
-        self.printTreeHelper(node.right)
+        
+        # else: find valid node to insert
+        node = self.findValidNode(item, self.root)
+        assert node.is_leaf(), "Invalid Node for adding item"
+        node.insert(item)
+        self.balanceNode(node)
         return
 
-    def printTree(self):
-        return self.printTreeHelper(self.head)
+
 
 if __name__ == '__main__':
     items = [5,8,12,4,2,10]

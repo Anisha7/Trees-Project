@@ -35,6 +35,9 @@ class Tree23(object):
         self.root = None
         for item in items:
             self.add(item)
+
+        self.length = 0
+        self.depth = 0
     
     #### helper functions ####
 
@@ -98,6 +101,7 @@ class Tree23(object):
         node.left = left
         node.right = right
         assert node.is_branch(), "Balanced, but not a branch???"
+        # self.depth += 1
         return
 
     #### implementation functions ####
@@ -114,6 +118,7 @@ class Tree23(object):
         node.insert(item)
         # balance if needed
         self.balance(node)
+        # self.length += 1
         return
 
     def printTreeHelper(self, node):
@@ -131,6 +136,18 @@ class Tree23(object):
 
     def printTree(self):
         return self.printTreeHelper(self.root)
+
+    def printDepthTreeHelper(self, node, depth):
+        if (node == None):
+            return
+        print (depth + node.data)
+        self.printDepthTreeHelper(node.left, depth[:-1])
+        self.printDepthTreeHelper(node.right, depth[:-1])
+
+    def printDepthTree(self):
+        # depth = " "*self.depth
+        self.printDepthTreeHelper(node, depth)
+
 
 if __name__ == '__main__':
     items = [5,8,12,4,2,10]

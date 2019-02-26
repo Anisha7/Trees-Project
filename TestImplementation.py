@@ -231,3 +231,111 @@ if __name__ == '__main__':
     items = [5,8,12,4,2,10]
     tree = Tree23(items)
     tree.printTree()
+
+
+# rough
+    # handle individual balancing and shifting
+    # TODO: CHECK AND FIX SELF.ROOT UPDATES AND NODE's OLD PARENT UPDATES
+    def balanceNode(self, node):
+        if (len(node.data) < 3): # base case: its balanced
+            return
+        
+        parent = node.parent
+        middleNode = node.middle
+        node.middle = None
+        middleVal = node.data.pop(1)
+        direction = 'left'
+        # case when node doesn't have a parent (root node)
+        if (parent is None):
+            # new nodes
+            newNode = Node([node.data.pop()]) # end value
+            newParent = Node([middleVal]) # middle node that gets promoted
+
+            # assigning values
+            newNode.right = node.right
+            node.right = None
+            newParent.left = node
+            
+            # fixing pointers
+            node = newParent.left
+            node.parent = newParent
+            # self.root = node.parent
+        
+        # node does have a parent
+        elif (parent is not None):
+            # if direction is right, not left
+            # data at index 1 because middle node is removed
+            if (node.parent.data[0] < node.data[1]):
+                direction = 'right'
+
+            # balancing a right node
+            if direction == 'right':
+                # variables
+                newVal = node.data.pop(0)
+                newNode = node.left
+                node.left = None
+
+                # changes
+                node.parent.insert(middleVal)
+                if (node.parent.middle is None):
+                    node.parent.middle = Node()
+                node.parent.middle.insert(newVal)
+                node.parent.middle.right = newNode
+                node.parent.middle.right.parent = parent.middle
+                node.parent.middle.parent = parent
+
+            # balancing a left node
+            elif direction == 'left':
+                # variables
+                newVal = node.data.pop()
+                newNode = node.right
+                node.right = None
+
+                # changes
+                node.parent.insert(middleVal)
+                if (node.parent.middle is None):
+                    node.parent.middle = Node()
+                node.parent.middle.insert(newVal)
+                node.parent.middle.left = newNode
+                if (newNode is not None):
+                    node.parent.middle.left.parent = parent.middle
+                node.parent.middle.parent = parent
+
+        # middle node exists
+        if (middleNode is not None):
+            mLeft, mRight = self.splitMiddle(middleNode)
+            if (direction == 'left'):
+                node.right = mLeft
+                # this parent refers to old parent on first check
+                if (parent is not None):
+                    node.parent.middle.left = mRight
+                else:
+                    node.parent.right.left = mRight
+
+            elif (direction == 'right'):
+                node.left = mRight
+                node.parent.middle.right = mLeft
+        
+        print(node)
+        print(node.data)
+        print(node.parent)
+        print(node.parent.data)
+        return
+
+            # TODO: splits the middle node
+    def splitMiddle(self, node):
+    # def splitMiddle(self, l1, l2):
+        left = Node(node.data[0])
+        right = Node(node.data[1])
+
+        # if it has children
+        if (node.is_branch()):
+            left.right = node.left
+            right.left = node.right
+            # if middle exists: call split middle recursively
+            if (node.middle != None):
+                l,r = self.splitMiddle(node.middle)
+                left.right.right = l
+                right.left.left = r
+        
+        return left, right

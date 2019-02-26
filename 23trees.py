@@ -82,90 +82,22 @@ class Tree23(object):
         assert node.is_leaf(), "Invalid node, its not a leaf."
         return node
 
-    # TODO: splits the middle node
-    def splitMiddle(self, node):
-        return 
-
-    # handle individual balancing and shifting
-    def balanceNode(self, node):
-        if (len(node.data) < 3): # base case: its balanced
+    def balance(self, node):
+        if (len(node.data) < 3):
             return
-        
-        parent = node.parent
-        middleNode = node.middle
-        node.middle = None
-        middleVal = node.data.pop(1)
-        direction = 'left'
-        # case when node doesn't have a parent (root node)
-        if (parent is None):
-            # new nodes
-            newNode = Node([node.data.pop()]) # end value
-            newParent = Node([middleVal]) # middle node that gets promoted
-
-            # assigning values
-            newNode.right = node.right
-            node.right = None
-            newParent.left = node
-            
-            # fixing pointers
-            node = newParent.left
-            node.parent = newParent
-        
-        # node does have a parent
-        elif (parent is not None):
-            # if direction is right, not left
-            # data at index 1 because middle node is removed
-            if (node.parent.data[0] < node.data[1]):
-                direction = 'right'
-
-            # balancing a right node
-            if direction == 'right':
-                # variables
-                newVal = node.data.pop(0)
-                newNode = node.left
-                node.left = None
-
-                # changes
-                node.parent.insert(middleVal)
-                if (node.parent.middle is None):
-                    node.parent.middle = Node()
-                node.parent.middle.insert(newVal)
-                node.parent.middle.right = newNode
-                node.parent.middle.right.parent = parent.middle
-                node.parent.middle.parent = parent
-
-            # balancing a left node
-            elif direction == 'left':
-                # variables
-                newVal = node.data.pop()
-                newNode = node.right
-                node.right = None
-
-                # changes
-                node.parent.insert(middleVal)
-                if (node.parent.middle is None):
-                    node.parent.middle = Node()
-                node.parent.middle.insert(newVal)
-                node.parent.middle.left = newNode
-                if (newNode is not None):
-                    node.parent.middle.left.parent = parent.middle
-                node.parent.middle.parent = parent
-
-        # middle node exists
-        if (middleNode is not None):
-            mLeft, mRight = self.splitMiddle(middleNode)
-            if (direction == 'left'):
-                node.right = m_left
-                # this parent refers to old parent on first check
-                if (parent is not None):
-                    node.parent.middle.left = mRight
-                else:
-                    node.parent.right.left = mRight
-
-            elif (direction == 'right'):
-                node.left = mRight
-                node.parent.middle.right = mLeft
-        
+        assert  node.is_leaf(), "Why are you balancing a branch???"
+        # 3 elements in node
+        min_elem = node.data.pop(0)
+        left = Node([min_elem])
+        max_elem = node.data.pop()
+        right = Node([max_elem])
+        assert len(node.data) == 1, "Data pops didn't work??"
+        left.prev = node
+        right.prev = node
+        # update node by adding children
+        node.left = left
+        node.right = right
+        assert node.is_branch(), "Balanced, but not a branch???"
         return
 
     #### implementation functions ####
@@ -180,17 +112,19 @@ class Tree23(object):
         node = self.findValidNode(item, self.root)
         assert node.is_leaf(), "Invalid Node for adding item"
         node.insert(item)
-        self.balanceNode(node)
+        # balance if needed
+        self.balance(node)
         return
 
     def printTreeHelper(self, node):
         if (node == None):
             return
 
-        print(node.data)
-        print('\n')
         self.printTreeHelper(node.left)
-        self.printTreeHelper(node.middle)
+        print(node.data[0])
+        if (len(node.data) == 2):
+            self.printTreeHelper(node.middle)
+            print(node.data[1])
         self.printTreeHelper(node.right)
         return
 

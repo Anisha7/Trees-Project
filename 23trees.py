@@ -196,8 +196,10 @@ class Tree23(object):
             self.balance4(node)
         elif (node.middle is not None):
             self.balance3(node, direction)
+            self.balance(node.parent)
         else:
             self.balance2(node, direction)
+            self.balance(node.parent)
 
     #### implementation functions ####
 
@@ -216,9 +218,29 @@ class Tree23(object):
         # self.length += 1
         return
     
-    # find
+    def findHelper(self, item, node):
+        # not found
+        if (node is None):
+            return False
+        # check if item is in this node
+        for elem in node.data:
+            if (item == elem):
+                return True
+        
+        # get direction for traversal if not found
+        direction = self.getDirection(item, node)
+        if (direction == 'left'):
+            return self.findHelper(item, node.left)
+        elif (direction == 'right'):
+            return self.findHelper(item, node.right)
+        elif (direction == 'middle'):
+            return self.findValidNode(item, node.middle)
+        
+        return False
+
+    # find if a value exists in the tree
     def find(self, item):
-        return
+        return self.findHelper(item, self.root)
 
     # delete
     def delete(self, item):
@@ -256,3 +278,5 @@ if __name__ == '__main__':
     items = [5,8,12,4,2,10]
     tree = Tree23(items)
     tree.printTree()
+
+    print(tree.find(5))

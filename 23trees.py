@@ -85,7 +85,85 @@ class Tree23(object):
         assert node.is_leaf(), "Invalid node, its not a leaf."
         return node
 
-    def balance(self, node):
+    # case where we are balancing a middle node
+    def balance4(self, node):
+        # initialize parent for our node
+        parent = node.parent
+        temp = Node(parent.data)
+        temp.parent = parent.parent
+        mid_elem = node.data.pop(1)
+        temp.insert(mid_elem)
+        self.balance1(temp)
+
+        # keep old left right vals of parent
+        parent.left.parent = temp.left
+        temp.left.left = parent.left
+        parent.right.parent = temp.right
+        temp.right.right = parent.right
+
+        # add rest of the mid values
+        temp.left.right = Node([node.data.pop(0)])
+        temp.left.right.parent = temp.left.right
+        temp.right.left = Node([node.data.pop()])
+        temp.right.left.parent = temp.right.left
+        
+        node = temp
+        # if root node
+        if (temp.parent is None):
+            self.root = temp
+        return
+
+    # case where node has a middle
+    def balance3(self, node, direction):
+        # new node to get first balance case
+        temp = Node(node.data)
+        self.balance1(temp)
+        # keeping old children nodes/subtrees
+        temp.left.left = node.left
+        temp.right.right = node.right
+        # dealing with middle
+        temp.left.right = Node([node.middle.data[0]])
+        temp.right.left = Node([node.middle.data[1]])
+        # restore old connections
+        if (node.parent is None):
+            # node is root node
+            self.root = temp
+            return
+        
+        # not a root node
+        temp.prev = node.prev
+        if (direction == "left"):
+            temp.prev.left = temp
+        elif (direction == "right"):
+            temp.prev.right = temp
+        elif (direction == "middle"):
+            temp.prev.middle = temp
+
+        node = temp # What would this do in terms of pointers??
+        return
+
+
+    # balances a leaf node, which is not the root
+    # allocates middle node
+    def balance2(self, node, direction):
+        # add mid to parent
+        mid_elem = node.data.pop(1)
+        node.parent.data.insert(mid_elem)
+        # see if middle node is initialized
+        if (node.parent.middle is None):
+            node.parent.middle = Node()
+        # handle adding other value to middle node, so only one val is left in node
+        if (direction == 'left'):
+            node.parent.middle.insert(node.data.pop())
+        elif (direction == 'right'):
+            node.parent.middle.insert(node.data.pop(0))
+        
+        return
+
+    # works for balancing root node
+    # splits node in two
+    # doesn't use middle node
+    def balance1(self, node):
         if (len(node.data) < 3):
             return
         assert  node.is_leaf(), "Why are you balancing a branch???"
@@ -104,6 +182,23 @@ class Tree23(object):
         # self.depth += 1
         return
 
+    def balance(self, node):
+        # if doesn't need balancing
+        if (len(node.data) < 3):
+            return
+        # if node is root node
+        if (node.parent is None and node.is_leaf()):
+            self.balance1(node)
+            return
+        
+        direction = self.getDirection(node.data[0], node.parent)
+        if (direction == "middle"):
+            self.balance4(node)
+        elif (node.middle is not None):
+            self.balance3(node, direction)
+        else:
+            self.balance2(node, direction)
+
     #### implementation functions ####
 
     # adds item to the tree and self balances
@@ -119,6 +214,14 @@ class Tree23(object):
         # balance if needed
         self.balance(node)
         # self.length += 1
+        return
+    
+    # find
+    def find(self, item):
+        return
+
+    # delete
+    def delete(self, item):
         return
 
     def printTreeHelper(self, node):

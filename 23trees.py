@@ -258,9 +258,25 @@ class Tree23(object):
         self.printTreeHelper(node.right)
         return
 
-
     def printTree(self):
         return self.printTreeHelper(self.root)
+
+    def getSortedTree(self, node, result):
+        if (node == None):
+            return
+
+        self.getSortedTree(node.left, result)
+        result.append(node.data[0])
+        if (len(node.data) == 2):
+            self.getSortedTree(node.middle, result)
+            result.append(node.data[1])
+        self.getSortedTree(node.right, result)
+        return
+
+    def sortedTree(self):
+        result = []
+        self.getSortedTree(self.root, result)
+        return result
 
     def printDepthTreeHelper(self, node, depth):
         if (node == None):
@@ -275,8 +291,16 @@ class Tree23(object):
 
 
 if __name__ == '__main__':
-    items = [5,8,12,4,2,10]
-    tree = Tree23(items)
-    tree.printTree()
+    # items = [5,8,12,4,2,10]
+    # tree = Tree23(items)
+    # print("Printing the tree with added items: %s"%(str(items)))
+    # tree.printTree()
+    # print("USING FIND: Does 5 exist in the tree?")
+    # print(tree.find(5))
 
-    print(tree.find(5))
+    items = list(set([3,5,6,7,8,9,10,2,524,21,4,62,773,21]))
+    print("USE SORTED TREE on items: %s"%(str(items)))
+    tree = Tree23(items)
+    result = tree.sortedTree()
+    print("RESULT BELOW: ")
+    print(result)
